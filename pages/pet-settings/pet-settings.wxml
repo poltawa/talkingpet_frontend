@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="header">
+    <view class="header-left">
+      <image class="return-icon" src="/images/return.jpg" bindtap="goBack"></image>
+    </view>
+    <text class="title">宠物设定</text>
+  </view>
+
+  <view class="form">
+    <!-- 宠物类型 -->
+    <view class="form-item">
+      <text class="label">宠物类型</text>
+      <picker bindchange="onTypeChange" value="{{index}}" range="{{petTypes}}">
+        <view class="picker {{selectedType ? '' : 'placeholder'}}">
+          {{selectedType || '请选择宠物类型'}}
+        </view>
+      </picker>
+      <input wx:if="{{showCustomType}}" 
+             class="custom-input"
+             placeholder="请输入宠物类型"
+             value="{{customType}}"
+             bindinput="onCustomTypeInput"/>
+    </view>
+
+    <!-- 性格特征 -->
+    <view class="form-item">
+      <text class="label">性格特征</text>
+      <picker bindchange="onPersonalityChange" value="{{index}}" range="{{personalities}}">
+        <view class="picker {{selectedPersonality ? '' : 'placeholder'}}">
+          {{selectedPersonality || '请选择性格特征'}}
+        </view>
+      </picker>
+      <input wx:if="{{showCustomPersonality}}"
+             class="custom-input"
+             placeholder="请输入性格特征"
+             value="{{customPersonality}}"
+             bindinput="onCustomPersonalityInput"/>
+    </view>
+
+    <!-- 习惯 -->
+    <view class="form-item">
+      <text class="label">习惯</text>
+      <picker bindchange="onHabitChange" value="{{index}}" range="{{habits}}">
+        <view class="picker {{selectedHabit ? '' : 'placeholder'}}">
+          {{selectedHabit || '请选择习惯'}}
+        </view>
+      </picker>
+      <input wx:if="{{showCustomHabit}}"
+             class="custom-input"
+             placeholder="请输入习惯"
+             value="{{customHabit}}"
+             bindinput="onCustomHabitInput"/>
+    </view>
+  </view>
+
+  <view class="buttons">
+    <button class="btn skip" bindtap="skipSettings">跳过</button>
+    <button class="btn save" bindtap="saveSettings">保存</button>
+  </view>
+</view>

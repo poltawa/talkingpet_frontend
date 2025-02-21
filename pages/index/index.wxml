@@ -1,0 +1,63 @@
+<view class="container">
+  <!-- 顶部功能区 -->
+  <view class="header">
+    <view class="header-right">
+      <image class="header-icon" src="/images/clear.jpg" bindtap="clearContext"></image>
+      <image class="header-icon" src="/images/my.jpg" bindtap="goToProfile"></image>
+    </view>
+  </view>
+
+  <!-- 对话区域 -->
+  <scroll-view 
+    class="chat-area" 
+    scroll-y 
+    scroll-with-animation
+    scroll-into-view="{{scrollIntoView}}"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}"
+  >
+    <!-- 初始上传图片组件 -->
+    <block wx:if="{{messages.length === 0}}">
+      <view class="upload-component">
+        <view class="upload-text">又偷拍本喵？给我看看！</view>
+        <view class="upload-area" bindtap="uploadImage">
+          <image class="upload-icon" src="/images/plus.jpg"></image>
+          <text>点击上传</text>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 消息列表 -->
+    <block wx:else>
+      <view wx:for="{{messages}}" wx:key="timestamp" class="message-wrapper {{item.isUser ? 'user' : 'ai'}}" id="msg-{{index}}">
+        <view class="message {{item.type}}">
+          <image wx:if="{{item.type === 'image'}}" src="{{item.content.tempPath}}" mode="{{item.isPortrait ? 'heightFix' : 'widthFix'}}" class="message-image {{item.isPortrait ? 'portrait' : 'landscape'}}"></image>
+          <text wx:else>{{item.content}}</text>
+        </view>
+      </view>
+      <view wx:if="{{isGenerating}}" class="message-wrapper ai">
+        <view class="message text generating">
+          <view class="typing-indicator">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 底部输入区域 -->
+  <view class="input-area" wx:if="{{showInput}}">
+    <input class="message-input" 
+           value="{{inputValue}}" 
+           bind:input="onInput" 
+           placeholder="说点什么..." 
+           confirm-type="send" 
+           bind:confirm="sendTextMessage"/>
+    <view class="button-group">
+      <image class="plus-icon" src="/images/plus.jpg" bindtap="uploadImage"></image>
+      <button class="send-button" bindtap="sendTextMessage" disabled="{{!inputValue}}">发送</button>
+    </view>
+  </view>
+</view>

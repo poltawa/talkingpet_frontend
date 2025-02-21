@@ -1,0 +1,257 @@
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #FFE4B5 0%, #FFDAB9 50%, #FFE4E1 100%);
+  padding-top: 120px;  /* 为header预留空间 */
+  padding-bottom: 50px;  /* 为input-area预留空间 */
+  box-sizing: border-box;
+}
+
+/* 顶部功能区 */
+.header {
+  height: 40px;
+  padding: 0 15px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* 对话区域 */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+  /* padding: 10px 0; */
+  box-sizing: border-box;
+}
+
+
+/* 上传组件样式 */
+.upload-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+}
+
+.upload-text {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 150px;
+  border: 2px dashed #999;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.upload-icon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 10px;
+}
+
+/* 消息样式 */
+.message-wrapper {
+  margin: 10px;
+  display: flex;
+  /* background-color: #f78a8a; */
+}
+
+.message-wrapper.user {
+  justify-content: flex-end;
+}
+
+.message-wrapper.ai {
+  justify-content: flex-start;
+  /* width: 100%;
+  overflow: hidden; */
+}
+
+.message {
+  max-width: 80%;
+}
+
+.message text {
+  display: block;
+  padding: 20rpx 30rpx;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-sizing: border-box; 
+}
+
+.message-wrapper.user text {
+  background-color: #FFA07A;
+  color: white;
+}
+
+.message-wrapper.ai text {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+}
+
+
+.message-image {
+  display: block;
+  border-radius: 8px;
+  /* background-color: rgb(157, 159, 161); */
+}
+
+.message-image.portrait {
+  max-height: 200px;
+  width: auto;
+}
+
+.message-image.landscape {
+  max-width: 200px;
+  height: auto;
+}
+
+
+/* 底部输入区域 */
+.input-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  /* background-color: cadetblue; */
+} 
+
+.message-input {
+  flex: 1;
+  height: 30px;
+  padding: 0 15px;
+  border-radius: 15px;
+  background-color: #f5f5f5;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.plus-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.send-button {
+  min-width: 120rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  font-size: 28rpx;
+  padding: 0 20rpx;
+  margin: 0;
+  background-color: #07c160;
+  color: white;
+  border-radius: 8rpx;
+}
+
+.send-button[disabled] {
+  background-color: #9fd5b5;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.typing-indicator .dot {
+  width: 8px;
+  height: 8px;
+  background: #999;
+  border-radius: 50%;
+  animation: typing 1s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.message.generating {
+  min-width: 60px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 欢迎提示样式 */
+.welcome-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 16px;
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
