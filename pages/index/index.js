@@ -223,7 +223,7 @@ Page({
         }, () => {
           setTimeout(() => {
             this.scrollToBottom();
-            console.log('scroll yunduan');
+            console.log('scroll yunduan11');
           }, 1000);
         });
 
