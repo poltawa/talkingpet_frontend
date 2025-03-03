@@ -3,9 +3,8 @@
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #FFE4B5 0%, #FFDAB9 50%, #FFE4E1 100%);
-  padding-top: 120px;  /* 为header预留空间 */
-  padding-bottom: 50px;  /* 为input-area预留空间 */
   box-sizing: border-box;
+  padding: 0;
 }
 
 /* 顶部功能区 */
@@ -38,11 +37,10 @@
 .chat-area {
   flex: 1;
   overflow-y: auto;
-  height: 100%;
-  /* padding: 10px 0; */
+  margin-top: 120px;
+  margin-bottom: 50px;
   box-sizing: border-box;
 }
-
 
 /* 上传组件样式 */
 .upload-component {
@@ -81,7 +79,6 @@
 .message-wrapper {
   margin: 10px;
   display: flex;
-  /* background-color: #f78a8a; */
 }
 
 .message-wrapper.user {
@@ -90,8 +87,6 @@
 
 .message-wrapper.ai {
   justify-content: flex-start;
-  /* width: 100%;
-  overflow: hidden; */
 }
 
 .message {
@@ -117,11 +112,9 @@
   color: #333;
 }
 
-
 .message-image {
   display: block;
   border-radius: 8px;
-  /* background-color: rgb(157, 159, 161); */
 }
 
 .message-image.portrait {
@@ -133,7 +126,6 @@
   max-width: 200px;
   height: auto;
 }
-
 
 /* 底部输入区域 */
 .input-area {
@@ -147,8 +139,7 @@
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  /* background-color: cadetblue; */
-} 
+}
 
 .message-input {
   flex: 1;
@@ -189,6 +180,7 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* 打字指示器 */
 .typing-indicator {
   display: flex;
   gap: 4px;

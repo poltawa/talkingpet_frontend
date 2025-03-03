@@ -10,11 +10,15 @@
   <!-- 对话区域 -->
   <scroll-view 
     class="chat-area" 
-    scroll-y 
-    scroll-with-animation
+    scroll-y
     scroll-into-view="{{scrollIntoView}}"
     enhanced="{{true}}"
     show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{isRefreshing}}"
+    bindrefresherrefresh="onPullDownRefresh"
+    style="flex: 1;"
+    bindscroll="onScroll"
   >
     <!-- 初始上传图片组件 -->
     <block wx:if="{{messages.length === 0}}">
