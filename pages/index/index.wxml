@@ -17,7 +17,6 @@
     refresher-enabled="{{true}}"
     refresher-triggered="{{isRefreshing}}"
     bindrefresherrefresh="onPullDownRefresh"
-    style="flex: 1;"
     bindscroll="onScroll"
   >
     <!-- 初始上传图片组件 -->

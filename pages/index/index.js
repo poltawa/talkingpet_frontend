@@ -1,4 +1,5 @@
 import { config } from "../../config/index.js";
+import { formatTimestamp } from "../../utils/dateUtil.js";
 
 // 节流函数
 function throttle(func, delay) {
@@ -21,7 +22,6 @@ Page({
     isGenerating: false,
     isFirstLoad: true,
     scrollIntoView: '',  // 新增
-    lastTimestamp: null,
     hasMore: true,    // 是否还有更多历史消息
     isLoading: false,  // 是否正在加载历史消息    
     isRefreshing: false,
@@ -177,8 +177,7 @@ Page({
     const recentMessages = wx.getStorageSync('recentMessages') || [];
     console.log('recentMessages bendi', recentMessages);
     this.setData({ 
-      messages: recentMessages,
-      // isFirstLoad: false
+      messages: recentMessages
     }, () => {
       setTimeout(() => {
         this.scrollToBottom();
@@ -273,7 +272,8 @@ Page({
         // 添加用户图片消息到列表
         this.sendMessage('image', {
           tempPath: tempFilePath,
-          timestamp: Date.now()
+          // timestamp: Date.now()
+          time: formatTimestamp(Date.now())
         });
 
         // 发送到后端
@@ -297,7 +297,9 @@ Page({
 
   sendMessage(type, content) {
     // 检查发送间隔（1秒）
-    const now = Date.now();
+    // const now = Date.now();
+    const now = formatTimestamp(Date.now());
+    
     if (now - this.data.lastSendTime < 1000) {
       wx.showToast({
         title: '发送太频繁',
@@ -310,7 +312,7 @@ Page({
       type,
       content,
       isUser: true,
-      timestamp: now
+      time: now
     };
   
     if (type === 'image') {
@@ -350,7 +352,8 @@ Page({
       type: 'text',
       content,
       isUser: role === 'assistant' ? false : true,
-      timestamp: Date.now()
+      // timestamp: Date.now()      
+      time: formatTimestamp(Date.now())
     };
 
     const newMessages = [...this.data.messages, message];
@@ -401,6 +404,8 @@ async loadHistoryMessages() {
   
   this.setData({ isLoading: true });
   try {
+    // console.log(this.data.messages);
+    console.log(this.data.messages[0].time);
     const res = await wx.cloud.callContainer({
       config: {
         env: config.WX_ENV_ID
@@ -409,14 +414,13 @@ async loadHistoryMessages() {
       method: 'GET',
       header: {
         'X-WX-SERVICE': config.WX_SERVICE_NAME,
-        'content-type': 'application/json',
-        'X-Session-ID': getApp().globalData.sessionId
+        'content-type': 'application/json'
       },
       data: {
-        last_timestamp: this.data.lastTimestamp
+        last_time: this.data.messages[0].time
       }
     });
-    // console.log(res)
+    console.log(res)
     if (res.statusCode === 200) {
       // 处理消息格式
       const newMessages = res.data.messages.map(msg => ({
@@ -427,19 +431,19 @@ async loadHistoryMessages() {
         isUser: msg.role === 'user'  // 添加isUser标志
       }));
       // console.log(currentMessages)
-      // console.log(newMessages)
+      console.log(newMessages)
 
       const currentMessages = this.data.messages;
-      const updatedMessages = this.data.isFirstLoad 
-        ? newMessages 
-        : [...newMessages, ...currentMessages];
+      // const updatedMessages = this.data.isFirstLoad 
+      //   ? newMessages 
+      //   : [...newMessages, ...currentMessages];
+      const updatedMessages = [...newMessages, ...currentMessages];
 
       console.log(updatedMessages)
         // 内存中保留所有加载的消息
       this.setData({
         messages: updatedMessages,
         hasMore: res.data.hasMore,
-        lastTimestamp: res.data.nextTimestamp,
         isFirstLoad: false,
         isLoading: false,
       });
