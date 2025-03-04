@@ -85,7 +85,7 @@
   justify-content: flex-end;
 }
 
-.message-wrapper.ai {
+.message-wrapper.system {
   justify-content: flex-start;
 }
 
@@ -107,7 +107,7 @@
   color: white;
 }
 
-.message-wrapper.ai text {
+.message-wrapper.system text {
   background-color: rgba(255, 255, 255, 0.8);
   color: #333;
 }

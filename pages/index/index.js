@@ -53,6 +53,9 @@ Page({
     // 从后台恢复时不需要特殊处理
     // this.scrollToBottom();
   },
+  onHide() {
+    wx.setStorageSync('recentMessages', this.data.messages.slice(-50));
+  },
 
   // onReachUpper() {
   //   if (!this.data.hasMore || this.data.isLoading) return;
@@ -65,14 +68,16 @@ Page({
 
   // 发送消息到后端
   async sendMessageToBackend(userMessage) {
-    let messageIndex;
+    // userMessage args object: type: 'image' or 'text',   content: 文本or FILEID
+    // 
+    // let messageIndex;
     try {
       // 设置生成状态
       this.setData({ isGenerating: true });
 
       let requestData;
-      if (userMessage.type === 'image') {
-        // 如果是图片消息，上传到云存储
+      console.log(userMessage);
+      if (userMessage.type === 'image') {  
         const uploadResult = await wx.cloud.uploadFile({
           cloudPath: `images/${Date.now()}.jpg`,
           filePath: userMessage.content,
@@ -80,8 +85,7 @@ Page({
             env: config.WX_ENV_ID
           }
         });
-
-        console.log('图片上传成功，fileID:', uploadResult.fileID);
+        console.log('图片上传成功，fileID:', uploadResult.fileID);      
         requestData = {
           type: 'image',
           fileID: uploadResult.fileID
@@ -129,27 +133,31 @@ Page({
                 try {
                   const eventData = JSON.parse(line.slice(6));
                   if (eventData.success && eventData.content) {
-                    // 如果是第一次收到内容，创建新消息
-                    if (messageIndex === undefined) {                  
-                      this.addMessage('assistant', '');
-                      messageIndex = this.data.messages.length - 1;
-                    }
-
                     fullContent += eventData.content;
                     
-                    // 更新现有消息
-                    const messages = this.data.messages;
-                    messages[messageIndex].content = fullContent;
-                    this.setData({ messages });
+                    // 如果是第一次收到内容，创建新消息
+                    // if (messageIndex === undefined) {                  
+                    //   this.addMessage('assistant', '');
+                    //   messageIndex = this.data.messages.length - 1;
+                    // }
 
-                    // 确保滚动到最新消息
-                    this.scrollToBottom();
+                    
+                    
+                    // 更新现有消息
+                    // const messages = this.data.messages;
+                    // messages[messageIndex].content = fullContent;
+                    // this.setData({ messages });
+
+                    // // 确保滚动到最新消息
+                    // this.scrollToBottom();
                   }
                 } catch (e) {
                   console.warn('解析SSE数据失败:', e);
                 }
               }
             }
+            this.updateMessages('text', 'system', fullContent);
+            console.log('tupian huaile daan', this.data.messages[this.data.messages.length-1].isPortrait, this.data.messages[this.data.messages.length-1].content);
             resolve();
           },
           fail: reject
@@ -157,15 +165,6 @@ Page({
       });
 
     } catch (error) {
-      if (messageIndex === undefined) {
-        this.addMessage('assistant', '抱歉，处理您的消息时出现了错误');
-        messageIndex = this.data.messages.length - 1;
-      }
-      wx.showToast({
-        title: error.message || '发送失败',
-        icon: 'none',
-        duration: 2000
-      });
       console.error('发送失败：', error);
     } finally {
       this.setData({ isGenerating: false });
@@ -230,7 +229,8 @@ Page({
     });
 
     // 添加用户消息到列表
-    this.sendMessage('text', content);
+    // this.sendMessage('text', content);
+    this.updateMessages('text', 'user', content);
 
     // 发送到后端
     this.sendMessageToBackend({
@@ -239,7 +239,7 @@ Page({
     });
   },
 
-  uploadImage() {
+  sendImageMessage() {
     if (this.data.isUploading) {
       wx.showToast({
         title: '请等待当前操作完成',
@@ -256,7 +256,7 @@ Page({
       sourceType: ['album', 'camera']
     }).then(res => {
       const tempFilePath = res.tempFilePaths[0];
-      
+      // console.log(tempFilePath);
       // 检查文件大小
       wx.getFileInfo({
         filePath: tempFilePath
@@ -270,12 +270,7 @@ Page({
         }
 
         // 添加用户图片消息到列表
-        this.sendMessage('image', {
-          tempPath: tempFilePath,
-          // timestamp: Date.now()
-          time: formatTimestamp(Date.now())
-        });
-
+        this.updateMessages('image', 'user', tempFilePath);        
         // 发送到后端
         this.sendMessageToBackend({
           type: 'image',
@@ -295,76 +290,84 @@ Page({
     });
   },
 
-  sendMessage(type, content) {
-    // 检查发送间隔（1秒）
-    // const now = Date.now();
-    const now = formatTimestamp(Date.now());
-    
-    if (now - this.data.lastSendTime < 1000) {
-      wx.showToast({
-        title: '发送太频繁',
-        icon: 'none'
-      });
-      return;
-    }
+  
 
+
+  // updateMessages(type, who_said, content) {
+  //   const message = {
+  //     type,
+  //     who_said,
+  //     content,
+  //     // isUser: role === 'assistant' ? false : true,
+  //     // timestamp: Date.now()      
+  //     time: formatTimestamp(Date.now()),
+  //     isPortrait: null
+  //   };
+  //   if (type === 'image') {
+  //     wx.getImageInfo({
+  //       src: content,
+  //       success: (res) => {
+  //         const isPortrait = res.height > res.width;
+  //         console.log('isPortrait',isPortrait)
+  //         message.isPortrait = isPortrait;
+  //       },
+  //       fail: (err) => {
+  //         console.error('获取图片信息失败：', err);
+  //       }
+  //     });
+  //   }
+  //   const newMessages = [...this.data.messages, message];
+  //   this.setData({
+  //     messages: newMessages
+  //   }, () => {
+  //     wx.nextTick(() => {
+  //       this.scrollToBottom();
+  //     });
+  //   });
+  //   // console.log(this.data.messages[-1])
+  //   console.log('tupian huaile', this.data.messages[this.data.messages.length-1].isPortrait, this.data.messages[this.data.messages.length-1].content);
+  // },
+
+
+  updateMessages(type, who_said, content) {
     const message = {
       type,
+      who_said,
       content,
-      isUser: true,
-      time: now
+      time: formatTimestamp(Date.now()),
+      isPortrait: null
     };
-  
-    if (type === 'image') {
-      wx.getImageInfo({
-        src: content.tempPath,
-        success: (res) => {
-          const isPortrait = res.height > res.width;
-          message.isPortrait = isPortrait;
-          this.updateMessages(message);
-        },
-        fail: (err) => {
-          console.error('获取图片信息失败：', err);
-          this.updateMessages(message);
-        }
+    
+    // 使用条件判断和Promise，不创建额外函数
+    (type === 'image' 
+      ? new Promise((resolve) => {
+          wx.getImageInfo({
+            src: content,
+            success: (res) => {
+              const isPortrait = res.height > res.width;
+              console.log('isPortrait', isPortrait);
+              message.isPortrait = isPortrait;
+              resolve();
+            },
+            fail: (err) => {
+              console.error('获取图片信息失败：', err);
+              resolve(); // 即使失败也继续
+            }
+          });
+        })
+      : Promise.resolve()
+    ).then(() => {
+      const newMessages = [...this.data.messages, message];
+      this.setData({
+        messages: newMessages
+      }, () => {
+        wx.nextTick(() => {
+          this.scrollToBottom();
+        });
       });
-    } else {
-      this.updateMessages(message);
-    }
-    // this.scrollToBottom();
-    this.setData({ lastSendTime: now });
-  },
-
-  updateMessages(message) {
-    const messages = [...this.data.messages, message];
-    this.setData({ messages }, () => {
-      wx.nextTick(() => {
-        this.scrollToBottom();
-      });
+      // console.log(this.data.messages[-1]);
+      console.log('tupian huaile', this.data.messages[this.data.messages.length-1].isPortrait, this.data.messages[this.data.messages.length-1].content);
     });
-    console.log('updateMessages', messages);
-    // 更新本地存储（只存储最近50条）
-    wx.setStorageSync('recentMessages', messages.slice(-50));
-  },
-
-  addMessage(role, content) {
-    const message = {
-      type: 'text',
-      content,
-      isUser: role === 'assistant' ? false : true,
-      // timestamp: Date.now()      
-      time: formatTimestamp(Date.now())
-    };
-
-    const newMessages = [...this.data.messages, message];
-    this.setData({
-      messages: newMessages,
-      isGenerating: false,
-      streamingText: ''
-    });
-
-    // 更新本地存储（只存储最近50条）
-    wx.setStorageSync('recentMessages', newMessages.slice(-50));
   },
 
   scrollToBottom() {
@@ -425,10 +428,8 @@ async loadHistoryMessages() {
       // 处理消息格式
       const newMessages = res.data.messages.map(msg => ({
         ...msg,
-        content: msg.type === 'image' ? {
-          tempPath: msg.content  // 如果是图片，把fileID放到tempPath中
-        } : msg.content,  // 如果是文本，直接使用content
-        isUser: msg.role === 'user'  // 添加isUser标志
+        content:  msg.content,  
+        who_said: msg.role 
       }));
       // console.log(currentMessages)
       console.log(newMessages)
