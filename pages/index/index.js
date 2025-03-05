@@ -1,5 +1,5 @@
 import { config } from "../../config/index.js";
-import { formatTimestamp } from "../../utils/dateUtil.js";
+import { formatCurrentTime } from "../../utils/dateUtil.js";
 
 // 节流函数
 function throttle(func, delay) {
@@ -34,6 +34,7 @@ Page({
       showWelcomeToast: true,
       welcomeMessage: '铲屎的又回来了'
     });
+    
     
 
     // 首先加载本地缓存的最近消息
@@ -334,7 +335,8 @@ Page({
       type,
       who_said,
       content,
-      time: formatTimestamp(Date.now()),
+      // time: formatTimestamp(Date.now()),
+      time: formatCurrentTime(), // 使用已调整的时间
       isPortrait: null
     };
     
