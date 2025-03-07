@@ -34,7 +34,7 @@ const syncTimeWithServer = () => {
         if (res.statusCode === 200) {
           const serverTimeStr = res.data.server_time;
           const serverTime = new Date(serverTimeStr).getTime();
-          
+          console.log(serverTimeStr)
           // 计算偏移量 (服务器时间 - 客户端时间)
           timeOffset = serverTime - clientTime;
           

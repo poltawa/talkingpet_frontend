@@ -18,25 +18,46 @@ Page({
   data: {
     messages: [],
     inputValue: '',
-    showInput: true,
     isGenerating: false,
-    isFirstLoad: true,
+    // isFirstLoad: true,
     scrollIntoView: '',  // 新增
     hasMore: true,    // 是否还有更多历史消息
-    isLoading: false,  // 是否正在加载历史消息    
-    isRefreshing: false,
+    isLoadingHis: false,  // 是否正在加载历史消息    
+    // isRefreshing: false,
+    hasUploadedImage: false, // 是否已上传图片
+    isInputFocused: false, // 输入框是否获得焦点
+    keyboardHeight: 0, // 键盘高度
   },
 
   onLoad() {
     // this.initializeData();
     // 显示欢迎消息
-    this.setData({
-      showWelcomeToast: true,
-      welcomeMessage: '铲屎的又回来了'
+    // this.setData({
+    //   showWelcomeToast: true,
+    //   // isFirstLoad: true,
+    //   hasUploadedImage: false
+    // });
+    
+    // 监听键盘高度变化
+    wx.onKeyboardHeightChange(res => {
+      if (res.height > 0 && this.data.isInputFocused) {
+        // 键盘弹出，调整输入框位置
+        this.setData({
+          keyboardHeight: res.height
+        });
+        
+        // 给布局调整留时间，然后滚动到底部
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 200);
+      } else {
+        // 键盘收起
+        this.setData({
+          keyboardHeight: 0
+        });
+      }
     });
     
-    
-
     // 首先加载本地缓存的最近消息
     this.loadLocalMessages();
     
@@ -53,6 +74,14 @@ Page({
   onShow() {
     // 从后台恢复时不需要特殊处理
     // this.scrollToBottom();
+    // 获取缓存的sessionId
+    // const storedSessionId = wx.getStorageSync('sessionId');
+    
+    // if (storedSessionId) {
+    //   this.setData({
+    //     sessionId: storedSessionId
+    //   });
+    // }
   },
   onHide() {
     wx.setStorageSync('recentMessages', this.data.messages.slice(-50));
@@ -67,9 +96,23 @@ Page({
   //   });
   // },
 
+  // 加载本地缓存的消息
+  loadLocalMessages() {
+    const recentMessages = wx.getStorageSync('recentMessages') || [];
+    console.log('recentMessages bendi', recentMessages);
+    this.setData({ 
+      messages: recentMessages
+    }, () => {
+      setTimeout(() => {
+        this.scrollToBottom();
+        console.log('scroll bendi');
+      }, 1000);
+    });
+  },
+
   // 发送消息到后端
   async sendMessageToBackend(userMessage) {
-    // userMessage args object: type: 'image' or 'text',   content: 文本or FILEID
+    // userMessage args object: type: 'image' or 'text',   content: 文本or FILEID, isPortrait: 1 or 0
     // 
     // let messageIndex;
     try {
@@ -89,13 +132,16 @@ Page({
         console.log('图片上传成功，fileID:', uploadResult.fileID);      
         requestData = {
           type: 'image',
-          fileID: uploadResult.fileID
+          fileID: uploadResult.fileID,
+          isPortrait: userMessage.isPortrait
         };
+        console.log(requestData);
       } else {
         // 如果是文本消息
         requestData = {
           type: 'text',
-          content: userMessage.content
+          content: userMessage.content,
+          isPortrait: null
         };
       }
 
@@ -172,19 +218,6 @@ Page({
     }
   },
 
-  // 加载本地缓存的消息
-  loadLocalMessages() {
-    const recentMessages = wx.getStorageSync('recentMessages') || [];
-    console.log('recentMessages bendi', recentMessages);
-    this.setData({ 
-      messages: recentMessages
-    }, () => {
-      setTimeout(() => {
-        this.scrollToBottom();
-        console.log('scroll bendi');
-      }, 1000);
-    });
-  },
 
 
   // loadLocalMessages() {
@@ -217,159 +250,159 @@ Page({
     });
   },
 
-  sendTextMessage() {
-    const content = this.data.inputValue.trim();
-    if (!content) {
-      return;
-    }
-
-    // 清空输入框
-    this.setData({ 
-      inputValue: '',
-      showInput: true  // 确保输入框保持显示
+  onInputFocus() {
+    this.setData({
+      isInputFocused: true
     });
+    
+    // 如果onKeyboardHeightChange还没触发，使用估计值
+    if (this.data.keyboardHeight === 0) {
+      wx.getSystemInfo({
+        success: (res) => {
+          // 估计键盘高度为屏幕高度的1/3
+          const estimatedKeyboardHeight = res.windowHeight / 3;
+          this.setData({
+            keyboardHeight: estimatedKeyboardHeight
+          });
+        }
+      });
+    }
+    
+    // 给布局调整留时间，然后滚动到底部
+    setTimeout(() => {
+      this.scrollToBottom();
+    }, 300);
+  },
 
-    // 添加用户消息到列表
-    // this.sendMessage('text', content);
-    this.updateMessages('text', 'user', content);
-
-    // 发送到后端
-    this.sendMessageToBackend({
-      type: 'text',
-      content: content
+  onInputBlur() {
+    this.setData({
+      isInputFocused: false
     });
   },
 
-  sendImageMessage() {
-    if (this.data.isUploading) {
+  sendTextMessage() {
+    if (this.data.isGenerating) {
       wx.showToast({
-        title: '请等待当前操作完成',
-        icon: 'none'
+        title: '你慢点说 !',
+        // icon: 'none'
+        image: '../../images/wait.png',
       });
       return;
     }
+    const content = this.data.inputValue.trim();
+    if (!content || !this.data.hasUploadedImage) {
+      return;
+    }
+    console.log('发送前 inputValue:', this.data.inputValue);
+    // 清空输入框
+    this.setData({ 
+      inputValue: ''
+    });
+    console.log('清空后 inputValue:', this.data.inputValue);
+    wx.nextTick(() => {
+      // 添加用户消息到列表
+      this.updateMessages('text', 'user', content);
+  
+      // 发送到后端
+      this.sendMessageToBackend({
+        type: 'text',
+        content: content
+      });
+    });
+    // 添加用户消息到列表
+    // this.sendMessage('text', content);
+    // this.updateMessages('text', 'user', content);
 
-    this.setData({ isUploading: true });
+    // // 发送到后端
+    // this.sendMessageToBackend({
+    //   type: 'text',
+    //   content: content
+    // });
+  },
 
+  sendImageMessage() {
+    if (this.data.isGenerating) {
+      wx.showToast({
+        title: '你慢点说 !',
+        image: '../../images/wait.png',
+      });
+      return;
+    }
+  
+    let tempFilePath;
+    
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera']
-    }).then(res => {
-      const tempFilePath = res.tempFilePaths[0];
-      // console.log(tempFilePath);
-      // 检查文件大小
-      wx.getFileInfo({
-        filePath: tempFilePath
-      }).then(fileInfo => {
-        if (fileInfo.size > 10 * 1024 * 1024) { // 10MB限制
-          wx.showToast({
-            title: '图片大小不能超过10MB',
-            icon: 'none'
-          });
-          return;
-        }
-
-        // 添加用户图片消息到列表
-        this.updateMessages('image', 'user', tempFilePath);        
-        // 发送到后端
-        this.sendMessageToBackend({
-          type: 'image',
-          content: tempFilePath
+    })
+    .then(res => {
+      tempFilePath = res.tempFilePaths[0];
+      // 返回一个新的Promise
+      return new Promise((resolve, reject) => {
+        wx.getImageInfo({
+          src: tempFilePath,
+          success(res) {
+            if (res.size > 10 * 1024 * 1024) {
+              wx.showToast({
+                title: '图片大小不能超过10MB',
+                icon: 'none'
+              });
+              reject(new Error('图片过大'));
+              return;
+            }
+            const isPortrait = res.height > res.width;
+            console.log('isPortrait', isPortrait);
+            resolve(isPortrait);
+          },
+          fail(err) {
+            console.error('获取图片信息失败：', err);
+            reject(err);
+          }
         });
-      }).catch(error => {
-        console.error('获取文件信息失败：', error);
       });
-    }).catch(error => {
-      console.error('上传失败：', error);
-      wx.showToast({
-        title: '上传失败',
-        icon: 'none'
+    })
+    .then(isPortrait => {
+      this.setData({
+        hasUploadedImage: true
       });
-    }).finally(() => {
-      this.setData({ isUploading: false });
+      
+      // 添加用户图片消息到列表
+      this.updateMessages('image', 'user', tempFilePath, isPortrait);
+      
+      // 发送到后端
+      this.sendMessageToBackend({
+        type: 'image',
+        content: tempFilePath,
+        isPortrait: isPortrait
+      });
+    })
+    .catch(error => {
+      if (error.message !== '图片过大') {
+        console.error('处理图片失败：', error);
+      }
     });
   },
 
-  
 
-
-  // updateMessages(type, who_said, content) {
-  //   const message = {
-  //     type,
-  //     who_said,
-  //     content,
-  //     // isUser: role === 'assistant' ? false : true,
-  //     // timestamp: Date.now()      
-  //     time: formatTimestamp(Date.now()),
-  //     isPortrait: null
-  //   };
-  //   if (type === 'image') {
-  //     wx.getImageInfo({
-  //       src: content,
-  //       success: (res) => {
-  //         const isPortrait = res.height > res.width;
-  //         console.log('isPortrait',isPortrait)
-  //         message.isPortrait = isPortrait;
-  //       },
-  //       fail: (err) => {
-  //         console.error('获取图片信息失败：', err);
-  //       }
-  //     });
-  //   }
-  //   const newMessages = [...this.data.messages, message];
-  //   this.setData({
-  //     messages: newMessages
-  //   }, () => {
-  //     wx.nextTick(() => {
-  //       this.scrollToBottom();
-  //     });
-  //   });
-  //   // console.log(this.data.messages[-1])
-  //   console.log('tupian huaile', this.data.messages[this.data.messages.length-1].isPortrait, this.data.messages[this.data.messages.length-1].content);
-  // },
-
-
-  updateMessages(type, who_said, content) {
+  updateMessages(type, who_said, content, isPortrait) {
     const message = {
-      type,
+      message_type: type,
       who_said,
-      content,
-      // time: formatTimestamp(Date.now()),
+      message_content: content,
       time: formatCurrentTime(), // 使用已调整的时间
-      isPortrait: null
+      isPortrait: isPortrait
     };
-    
-    // 使用条件判断和Promise，不创建额外函数
-    (type === 'image' 
-      ? new Promise((resolve) => {
-          wx.getImageInfo({
-            src: content,
-            success: (res) => {
-              const isPortrait = res.height > res.width;
-              console.log('isPortrait', isPortrait);
-              message.isPortrait = isPortrait;
-              resolve();
-            },
-            fail: (err) => {
-              console.error('获取图片信息失败：', err);
-              resolve(); // 即使失败也继续
-            }
-          });
-        })
-      : Promise.resolve()
-    ).then(() => {
-      const newMessages = [...this.data.messages, message];
-      this.setData({
-        messages: newMessages
-      }, () => {
+    const newMessages = [...this.data.messages, message];
+    this.setData({
+      messages: newMessages
+    }, () => {
         wx.nextTick(() => {
           this.scrollToBottom();
         });
       });
       // console.log(this.data.messages[-1]);
-      console.log('tupian huaile', this.data.messages[this.data.messages.length-1].isPortrait, this.data.messages[this.data.messages.length-1].content);
-    });
+    console.log('tupian huaile', this.data.messages[this.data.messages.length-1].isPortrait, this.data.messages[this.data.messages.length-1].content);
   },
 
   scrollToBottom() {
@@ -384,7 +417,7 @@ Page({
 
   onPullDownRefresh: function() {
     console.log('触发onPullDownRefresh');
-    this.setData({ isRefreshing: true });
+    // this.setData({ isLoadingHis: true });
     if (this._pullDownThrottle) {
       this._pullDownThrottle();
       return;
@@ -392,7 +425,7 @@ Page({
     
     this._pullDownThrottle = throttle(async () => {
       await this.loadHistoryMessages();
-      this.setData({ isRefreshing: false });
+      this.setData({ isLoadingHis: false });
       wx.stopPullDownRefresh();
     }, 1000);
     
@@ -405,9 +438,9 @@ async loadHistoryMessages() {
   console.log('触发下拉刷新');
   
   // 如果正在加载，直接返回
-  if (this.data.isLoading) return;
+  if (this.data.isLoadingHis) return;
   
-  this.setData({ isLoading: true });
+  this.setData({ isLoadingHis: true });
   try {
     // console.log(this.data.messages);
     console.log(this.data.messages[0].time);
@@ -429,17 +462,12 @@ async loadHistoryMessages() {
     if (res.statusCode === 200) {
       // 处理消息格式
       const newMessages = res.data.messages.map(msg => ({
-        ...msg,
-        content:  msg.content,  
-        who_said: msg.role 
+        ...msg
       }));
       // console.log(currentMessages)
       console.log(newMessages)
 
       const currentMessages = this.data.messages;
-      // const updatedMessages = this.data.isFirstLoad 
-      //   ? newMessages 
-      //   : [...newMessages, ...currentMessages];
       const updatedMessages = [...newMessages, ...currentMessages];
 
       console.log(updatedMessages)
@@ -447,17 +475,9 @@ async loadHistoryMessages() {
       this.setData({
         messages: updatedMessages,
         hasMore: res.data.hasMore,
-        isFirstLoad: false,
-        isLoading: false,
+        // isFirstLoad: false,
+        isLoadingHis: false,
       });
-
-
-
-
-      // 只在首次加载时更新本地存储，且只存储最新的50条
-      // if (this.data.isFirstLoad && newMessages.length > 0) {
-      //   wx.setStorageSync('recentMessages', newMessages.slice(-50));
-      // }
     }
   } catch (error) {
     console.error('加载历史消息失败:', error);
@@ -467,4 +487,10 @@ async loadHistoryMessages() {
     });
   } 
 },
-});
+
+  // 监听页面尺寸变化
+  onResize(res) {
+    // 页面尺寸变化时滚动到底部（例如键盘弹出/收起）
+    this.scrollToBottom();
+  }
+})

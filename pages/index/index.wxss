@@ -5,41 +5,46 @@
   background: linear-gradient(180deg, #FFE4B5 0%, #FFDAB9 50%, #FFE4E1 100%);
   box-sizing: border-box;
   padding: 0;
+  position: relative;
 }
 
 /* 顶部功能区 */
 .header {
-  height: 40px;
-  padding: 0 15px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
   position: fixed;
-  top: 80px;
+  top: 0;
   left: 0;
   right: 0;
+  height: 90rpx;
+  padding: 0 30rpx;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.1);
+  margin-top: 85rpx; /* 为微信小程序官方导航栏预留空间 */
+  /* background: rgba(255, 255, 255, 0.1); */ /* 可以取消注释来添加背景 */
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 15px;
+}
+
+.header-right image:first-child {
+  margin-right: 20rpx; /* 手动设置第一个图标的右边距 */
 }
 
 .header-icon {
-  width: 24px;
-  height: 24px;
+  width: 65rpx;
+  height: 65rpx;
 }
 
 /* 对话区域 */
 .chat-area {
-  flex: 1;
   overflow-y: auto;
-  margin-top: 120px;
-  margin-bottom: 50px;
+  margin-top: 180rpx; /* 调整为rpx单位并增大以适应顶部导航栏+header的高度 */
   box-sizing: border-box;
+  transition: height 0.2s; /* 添加高度过渡效果 */
+  /* padding-bottom: 10px;  */
 }
 
 /* 上传组件样式 */
@@ -75,6 +80,50 @@
   margin-bottom: 10px;
 }
 
+/* 上传悬浮组件样式 */
+.upload-floating-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 15px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upload-floating-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.upload-text {
+  font-size: 16px;
+  color: #666;
+  margin-right: 10px;
+}
+
+.upload-pet-image {
+  width: 100px;
+  height: 100px;
+}
+
+.upload-floating-bottom {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 5px 0;
+}
+
+.upload-plus-icon {
+  width: 80px;
+  height: 80px;
+}
+
 /* 消息样式 */
 .message-wrapper {
   margin: 10px;
@@ -103,13 +152,13 @@
 }
 
 .message-wrapper.user text {
-  background-color: #FFA07A;
-  color: white;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
 }
 
 .message-wrapper.system text {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #333;
+  background-color: #FFA07A;
+  color: white;
 }
 
 .message-image {
@@ -130,54 +179,46 @@
 /* 底部输入区域 */
 .input-area {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 50px;
-  padding: 0 15px;
+  /* bottom: 12px; 通过style动态设置 */
+  left: 15px;
+  right: 15px;
+  height: 44px;
+  padding: 0;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  z-index: 99;
+  transition: bottom 0.2s; /* 平滑过渡效果 */
 }
 
 .message-input {
   flex: 1;
-  height: 30px;
+  height: 44px;
   padding: 0 15px;
-  border-radius: 15px;
-  background-color: #f5f5f5;
+  border-radius: 22px;
+  background-color: transparent;
   font-size: 14px;
-  margin-right: 10px;
+  margin-right: 0;
 }
 
-.plus-icon {
-  width: 30px;
-  height: 30px;
-  padding: 0;
-}
-
-.button-group {
+.input-actions {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding-right: 10px;
 }
 
-.send-button {
-  min-width: 120rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  font-size: 28rpx;
-  padding: 0 20rpx;
-  margin: 0;
-  background-color: #07c160;
-  color: white;
-  border-radius: 8rpx;
+.action-icon {
+  width: 24px;
+  height: 24px;
 }
 
-.send-button[disabled] {
-  background-color: #9fd5b5;
-  color: rgba(255, 255, 255, 0.6);
+.send-icon {
+  /* border-radius: 50%; */
 }
 
 /* 打字指示器 */
